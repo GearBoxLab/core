@@ -1,0 +1,14 @@
+name: Release to pkg.go.dev
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: Release to pkg.go.dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release to pkg.go.dev
+        run: curl https://proxy.golang.org/github.com/GearBoxLab/core/@v/$GITHUB_REF_NAME.info
