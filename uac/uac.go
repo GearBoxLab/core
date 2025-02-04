@@ -3,7 +3,6 @@ package uac
 import (
 	"errors"
 	"os"
-	"os/exec"
 	"strings"
 	"syscall"
 	"time"
@@ -23,7 +22,7 @@ func PromptWithExtraArguments(messageFilePath string, maxWaitTime time.Duration,
 		return err
 	}
 
-	if IsAdmin() {
+	if IsElevated() {
 		err := job()
 		message := []byte("")
 
@@ -77,15 +76,8 @@ func PromptWithExtraArguments(messageFilePath string, maxWaitTime time.Duration,
 	return nil
 }
 
-func IsAdmin() bool {
-	systemRoot := os.Getenv("SYSTEMROOT")
-	cmd := exec.Command(systemRoot+`\system32\cacls.exe`, systemRoot+`\system32\config\system`)
-
-	if err := cmd.Run(); nil != err {
-		return false
-	}
-
-	return true
+func IsElevated() bool {
+	return windows.GetCurrentProcessToken().IsElevated()
 }
 
 func doPrompt(extraArguments []string) error {
