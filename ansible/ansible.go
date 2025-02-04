@@ -20,10 +20,10 @@ func New(processFactory process.Factory) *Ansible {
 	}
 }
 
-func (i *Ansible) Install(osName, sudoPassword string) (err error) {
+func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 	var installed bool
 
-	if installed, err = i.isInstalled(); nil != err {
+	if installed, err = ansible.isInstalled(); nil != err {
 		return err
 	}
 
@@ -31,10 +31,10 @@ func (i *Ansible) Install(osName, sudoPassword string) (err error) {
 		switch osName {
 		case "oracle-linux":
 			processes := []*process.Process{
-				i.processFactory.NewSudoProcess(sudoPassword, "dnf", "check-update", "-y"),
-				i.processFactory.NewSudoProcess(sudoPassword, "dnf", "upgrade", "-y"),
-				i.processFactory.NewSudoProcess(sudoPassword, "dnf", "install", "-y", "epel-release"),
-				i.processFactory.NewSudoProcess(sudoPassword, "dnf", "install", "-y", "ansible"),
+				ansible.processFactory.NewSudoProcess(sudoPassword, "dnf", "check-update", "-y"),
+				ansible.processFactory.NewSudoProcess(sudoPassword, "dnf", "upgrade", "-y"),
+				ansible.processFactory.NewSudoProcess(sudoPassword, "dnf", "install", "-y", "epel-release"),
+				ansible.processFactory.NewSudoProcess(sudoPassword, "dnf", "install", "-y", "ansible"),
 			}
 
 			terminal.Printf("\n<comment>$ %s</comment>\n", processes[0].String())
@@ -67,8 +67,8 @@ func (i *Ansible) Install(osName, sudoPassword string) (err error) {
 	return nil
 }
 
-func (i *Ansible) RunAnsiblePlaybook(playbookFilePath, variableFilePath, sudoPassword string) (err error) {
-	proc := i.processFactory.NewProcess(
+func (ansible *Ansible) RunAnsiblePlaybook(playbookFilePath, variableFilePath, sudoPassword string, args ...string) (err error) {
+	proc := ansible.processFactory.NewProcess(
 		"HISTSIZE=0",
 		"ansible-playbook",
 		playbookFilePath,
@@ -81,6 +81,10 @@ func (i *Ansible) RunAnsiblePlaybook(playbookFilePath, variableFilePath, sudoPas
 		proc.AddArguments("-" + strings.Repeat("v", terminal.GetLogLevel()-1))
 	}
 
+	if len(args) > 0 {
+		proc.AddArguments(args...)
+	}
+
 	terminal.Printf("\n<comment>$ %s</comment>\n", proc.String())
 	if _, err = proc.Run(); nil != err {
 		return err
@@ -89,17 +93,17 @@ func (i *Ansible) RunAnsiblePlaybook(playbookFilePath, variableFilePath, sudoPas
 	return nil
 }
 
-func (i *Ansible) isInstalled() (installed bool, err error) {
+func (ansible *Ansible) isInstalled() (installed bool, err error) {
 	var path string
 	var realPath string
 
-	if path, err = i.processFactory.NewProcess("which", "ansible").Output(); nil != err && "exit status 1" != err.Error() {
+	if path, err = ansible.processFactory.NewProcess("which", "ansible").Output(); nil != err && "exit status 1" != err.Error() {
 		return false, err
 	}
 	path = strings.TrimSpace(path)
 
 	if "" != path {
-		if realPath, err = i.processFactory.NewProcess("ls", path).Output(); nil != err {
+		if realPath, err = ansible.processFactory.NewProcess("ls", path).Output(); nil != err {
 			return false, err
 		}
 
