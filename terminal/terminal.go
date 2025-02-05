@@ -37,3 +37,7 @@ func IsVerbose() bool {
 func GetLogLevel() int {
 	return terminal.GetLogLevel()
 }
+
+func FormatBlockMessage(format string, msg string) string {
+	return terminal.FormatBlockMessage(format, msg)
+}
