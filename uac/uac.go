@@ -18,8 +18,10 @@ func Prompt(messageFilePath string, maxWaitTime time.Duration, job func() error)
 // PromptWithExtraArguments triggers Windows UAC elevation prompt.
 // The extraArguments will append to the original command arguments.
 func PromptWithExtraArguments(messageFilePath string, maxWaitTime time.Duration, extraArguments []string, job func() error) error {
-	if err := os.Remove(messageFilePath); err != nil {
-		return err
+	if _, err := os.Stat(messageFilePath); nil == err {
+		if err = os.Remove(messageFilePath); err != nil {
+			return err
+		}
 	}
 
 	if IsElevated() {
@@ -37,7 +39,7 @@ func PromptWithExtraArguments(messageFilePath string, maxWaitTime time.Duration,
 		return err
 	}
 
-	if err := doPrompt(extraArguments); nil != err {
+	if err := doPrompt(extraArguments); err != nil {
 		return err
 	}
 
@@ -65,7 +67,7 @@ func PromptWithExtraArguments(messageFilePath string, maxWaitTime time.Duration,
 				return removeErr
 			}
 
-			if nil != err {
+			if err != nil {
 				return err
 			}
 
