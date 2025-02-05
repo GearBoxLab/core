@@ -12,10 +12,10 @@ import (
 func UpdateHostsFile(comment, newHostsFilePath, systemHostsFilePath string) (err error) {
 	var newHosts []byte
 	var buff bytes.Buffer
-	startPattern := fmt.Sprintf(`^##>>> %s ## START >>>##`, comment)
-	endPattern := fmt.Sprintf(`^##<<< %s ## END   <<<##`, comment)
+	startMessage := fmt.Sprintf(`##>>> %s ## START >>>##`, comment)
+	endMessage := fmt.Sprintf(`##<<< %s ## END   <<<##`, comment)
 
-	if buff, err = loadHostsFile(systemHostsFilePath, startPattern, endPattern); err != nil {
+	if buff, err = loadHostsFile(systemHostsFilePath, startMessage, endMessage); err != nil {
 		return err
 	}
 
@@ -26,30 +26,30 @@ func UpdateHostsFile(comment, newHostsFilePath, systemHostsFilePath string) (err
 	newHosts = bytes.TrimSpace(newHosts)
 
 	if len(newHosts) > 0 {
-		buff.WriteString(startPattern)
+		buff.WriteString(startMessage)
+		buff.WriteRune('\n')
 		buff.Write(newHosts)
 		buff.WriteRune('\n')
-		buff.WriteString(endPattern)
+		buff.WriteString(endMessage)
 		buff.WriteRune('\n')
 	}
 
 	return os.WriteFile(systemHostsFilePath, buff.Bytes(), 0644)
 }
 
-func loadHostsFile(filepath, startPattern, endPattern string) (buff bytes.Buffer, err error) {
+func loadHostsFile(filepath, startMessage, endMessage string) (buff bytes.Buffer, err error) {
 	if _, err = os.Stat(filepath); errors.Is(err, os.ErrNotExist) {
 		return buff, fmt.Errorf("the hosts file %q is not found", filepath)
 	}
 
 	var file *os.File
-
 	if file, err = os.Open(filepath); nil != err {
 		return buff, err
 	}
 
 	hostsFileScanner := bufio.NewScanner(file)
-	regexpStart := regexp.MustCompile(startPattern)
-	regexpEnd := regexp.MustCompile(endPattern)
+	regexpStart := regexp.MustCompile("^" + regexp.QuoteMeta(startMessage))
+	regexpEnd := regexp.MustCompile("^" + regexp.QuoteMeta(endMessage))
 	hasStart := false
 	hasEnd := false
 
