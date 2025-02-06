@@ -10,17 +10,12 @@ import (
 type Process struct {
 	preArguments []*argument
 	arguments    []*argument
-	output       *output
 }
 
 func New(arguments ...string) *Process {
 	p := &Process{
 		preArguments: []*argument{},
 		arguments:    []*argument{},
-		output: &output{
-			stdout: os.Stdout,
-			buffer: strings.Builder{},
-		},
 	}
 	p.AddArguments(arguments...)
 
@@ -43,18 +38,16 @@ func NewWslSudoProcess(distribution string, arguments ...string) *Process {
 }
 
 func (p *Process) Run() (out string, err error) {
-	p.output.Reset()
-
 	cmd := p.newCommand()
-	cmd.Stdout = p.output
+	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
-	cmd.Stderr = p.output
+	cmd.Stderr = os.Stderr
 
 	if err = cmd.Run(); err != nil {
-		return p.output.String(), err
+		return "", err
 	}
 
-	return p.output.String(), nil
+	return "", nil
 }
 
 func (p *Process) Output() (out string, err error) {
