@@ -6,8 +6,10 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/GearBoxLab/core/printer"
 	"github.com/GearBoxLab/core/process"
-	"github.com/GearBoxLab/core/terminal"
+
+	"github.com/symfony-cli/terminal"
 )
 
 type Ansible struct {
@@ -37,11 +39,11 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 				ansible.processFactory.NewSudoProcess(sudoPassword, "dnf", "install", "-y", "ansible"),
 			}
 
-			terminal.Printf("\n<comment>$ %s</comment>\n", processes[0].String())
+			printer.Printf("\n<comment>$ %s</comment>\n", processes[0].String())
 			if _, err = processes[0].Run(); err != nil {
 				var exitError *exec.ExitError
 				if errors.As(err, &exitError) && exitError.ExitCode() == 100 {
-					terminal.Printf("\n<comment>$ %s</comment>\n", processes[1].String())
+					printer.Printf("\n<comment>$ %s</comment>\n", processes[1].String())
 					if _, err = processes[1].Run(); err != nil {
 						return err
 					}
@@ -50,12 +52,12 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 				}
 			}
 
-			terminal.Printf("\n<comment>$ %s</comment>\n", processes[2].String())
+			printer.Printf("\n<comment>$ %s</comment>\n", processes[2].String())
 			if _, err = processes[2].Run(); nil != err {
 				return err
 			}
 
-			terminal.Printf("\n<comment>$ %s</comment>\n", processes[3].String())
+			printer.Printf("\n<comment>$ %s</comment>\n", processes[3].String())
 			if _, err = processes[3].Run(); nil != err {
 				return err
 			}
@@ -85,7 +87,7 @@ func (ansible *Ansible) RunAnsiblePlaybook(playbookFilePath, variableFilePath, s
 		proc.AddArguments(args...)
 	}
 
-	terminal.Printf("\n<comment>$ %s</comment>\n", proc.String())
+	printer.Printf("\n<comment>$ %s</comment>\n", proc.String())
 	if _, err = proc.Run(); nil != err {
 		return err
 	}

@@ -1,4 +1,4 @@
-package terminal
+package printer
 
 import (
 	"log"
@@ -30,14 +30,26 @@ func Printfln(format string, a ...interface{}) {
 	}
 }
 
-func IsVerbose() bool {
-	return terminal.IsVerbose()
+func Eprint(a ...interface{}) {
+	if _, err := terminal.Eprint(a...); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func GetLogLevel() int {
-	return terminal.GetLogLevel()
+func Eprintf(format string, a ...interface{}) {
+	if _, err := terminal.Eprintf(format, a...); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func FormatBlockMessage(format string, msg string) string {
-	return terminal.FormatBlockMessage(format, msg)
+func Eprintln(a ...interface{}) {
+	if _, err := terminal.Eprintln(a...); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Eprintfln(format string, a ...interface{}) {
+	if _, err := terminal.Eprintfln(format, a...); err != nil {
+		log.Fatal(err)
+	}
 }
