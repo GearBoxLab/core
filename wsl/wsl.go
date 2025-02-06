@@ -82,7 +82,7 @@ func createWslConfFile(distribution string) (err error) {
 		process.NewWslSudoProcess(distribution, "bash", "-c", "echo >> /etc/wsl.conf"),
 	}
 	for _, proc := range processes {
-		if _, err = proc.Run(); err != nil {
+		if err = proc.Run(); err != nil {
 			return err
 		}
 	}
@@ -128,7 +128,7 @@ func updateWslConfFile(distribution, content string) (modified bool, err error) 
 			}
 
 			cmd := fmt.Sprintf("echo %q %s /etc/wsl.conf", line, strings.Repeat(">", operatorCount))
-			if _, err = process.NewWslSudoProcess(distribution, "bash", "-c", cmd).Run(); err != nil {
+			if err = process.NewWslSudoProcess(distribution, "bash", "-c", cmd).Run(); err != nil {
 				return modified, err
 			}
 		}

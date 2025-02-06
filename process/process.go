@@ -37,17 +37,17 @@ func NewWslSudoProcess(distribution string, arguments ...string) *Process {
 	return New(arguments...).AddPreArguments("wsl", "-d", distribution, "-u", "root")
 }
 
-func (p *Process) Run() (out string, err error) {
+func (p *Process) Run() (err error) {
 	cmd := p.newCommand()
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 
 	if err = cmd.Run(); err != nil {
-		return "", err
+		return err
 	}
 
-	return "", nil
+	return nil
 }
 
 func (p *Process) Output() (out string, err error) {

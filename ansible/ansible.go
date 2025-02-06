@@ -40,11 +40,11 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 			}
 
 			printer.Printf("\n<comment>$ %s</comment>\n", processes[0].String())
-			if _, err = processes[0].Run(); err != nil {
+			if err = processes[0].Run(); err != nil {
 				var exitError *exec.ExitError
 				if errors.As(err, &exitError) && exitError.ExitCode() == 100 {
 					printer.Printf("\n<comment>$ %s</comment>\n", processes[1].String())
-					if _, err = processes[1].Run(); err != nil {
+					if err = processes[1].Run(); err != nil {
 						return err
 					}
 				} else {
@@ -53,12 +53,12 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 			}
 
 			printer.Printf("\n<comment>$ %s</comment>\n", processes[2].String())
-			if _, err = processes[2].Run(); nil != err {
+			if err = processes[2].Run(); nil != err {
 				return err
 			}
 
 			printer.Printf("\n<comment>$ %s</comment>\n", processes[3].String())
-			if _, err = processes[3].Run(); nil != err {
+			if err = processes[3].Run(); nil != err {
 				return err
 			}
 		default:
@@ -88,7 +88,7 @@ func (ansible *Ansible) RunAnsiblePlaybook(playbookFilePath, variableFilePath, s
 	}
 
 	printer.Printf("\n<comment>$ %s</comment>\n", proc.String())
-	if _, err = proc.Run(); nil != err {
+	if err = proc.Run(); nil != err {
 		return err
 	}
 
