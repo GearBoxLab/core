@@ -1,4 +1,4 @@
-package process
+package command
 
 import (
 	"bytes"
@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-type Process struct {
+type Command struct {
 	preArguments []*argument
 	arguments    []*argument
 }
 
-func New(arguments ...string) *Process {
-	p := &Process{
+func New(arguments ...string) *Command {
+	p := &Command{
 		preArguments: []*argument{},
 		arguments:    []*argument{},
 	}
@@ -22,23 +22,23 @@ func New(arguments ...string) *Process {
 	return p
 }
 
-func NewSudoProcess(sudoPassword string, arguments ...string) *Process {
-	process := New(arguments...).AddPreArguments("HISTSIZE=0", "echo", sudoPassword, "|", "sudo", "-S")
-	process.SetSecretPreArguments(2)
+func NewSudoCommand(sudoPassword string, arguments ...string) *Command {
+	cmd := New(arguments...).AddPreArguments("HISTSIZE=0", "echo", sudoPassword, "|", "sudo", "-S")
+	cmd.SetSecretPreArguments(2)
 
-	return process
+	return cmd
 }
 
-func NewWslProcess(distribution string, arguments ...string) *Process {
+func NewWslCommand(distribution string, arguments ...string) *Command {
 	return New(arguments...).AddPreArguments("wsl", "-d", distribution)
 }
 
-func NewWslSudoProcess(distribution string, arguments ...string) *Process {
+func NewWslSudoCommand(distribution string, arguments ...string) *Command {
 	return New(arguments...).AddPreArguments("wsl", "-d", distribution, "-u", "root")
 }
 
-func (p *Process) Run() (err error) {
-	cmd := p.newCommand()
+func (p *Command) Run() (err error) {
+	cmd := p.newExecCmd()
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -50,10 +50,10 @@ func (p *Process) Run() (err error) {
 	return nil
 }
 
-func (p *Process) Output() (out string, err error) {
+func (p *Command) Output() (out string, err error) {
 	var result []byte
 
-	if result, err = p.newCommand().CombinedOutput(); err != nil {
+	if result, err = p.newExecCmd().CombinedOutput(); err != nil {
 		return "", err
 	}
 
@@ -63,15 +63,15 @@ func (p *Process) Output() (out string, err error) {
 	return string(result), err
 }
 
-func (p *Process) String() string {
+func (p *Command) String() string {
 	return p.toString(true)
 }
 
-func (p *Process) StringWithSecret() string {
+func (p *Command) StringWithSecret() string {
 	return p.toString(false)
 }
 
-func (p *Process) AddPreArguments(arguments ...string) *Process {
+func (p *Command) AddPreArguments(arguments ...string) *Command {
 	for _, arg := range arguments {
 		p.preArguments = append(p.preArguments, &argument{Value: arg, IsSecret: false})
 	}
@@ -79,7 +79,7 @@ func (p *Process) AddPreArguments(arguments ...string) *Process {
 	return p
 }
 
-func (p *Process) AddArguments(arguments ...string) *Process {
+func (p *Command) AddArguments(arguments ...string) *Command {
 	for _, arg := range arguments {
 		p.arguments = append(p.arguments, &argument{Value: arg, IsSecret: false})
 	}
@@ -87,7 +87,7 @@ func (p *Process) AddArguments(arguments ...string) *Process {
 	return p
 }
 
-func (p *Process) SetSecretPreArguments(indexes ...int) *Process {
+func (p *Command) SetSecretPreArguments(indexes ...int) *Command {
 	lastIndex := len(p.preArguments) - 1
 
 	for _, index := range indexes {
@@ -99,7 +99,7 @@ func (p *Process) SetSecretPreArguments(indexes ...int) *Process {
 	return p
 }
 
-func (p *Process) SetSecretArguments(indexes ...int) *Process {
+func (p *Command) SetSecretArguments(indexes ...int) *Command {
 	lastIndex := len(p.arguments) - 1
 
 	for _, index := range indexes {
@@ -111,7 +111,7 @@ func (p *Process) SetSecretArguments(indexes ...int) *Process {
 	return p
 }
 
-func (p *Process) SetNormalPreArguments(indexes ...int) *Process {
+func (p *Command) SetNormalPreArguments(indexes ...int) *Command {
 	lastIndex := len(p.preArguments) - 1
 
 	for _, index := range indexes {
@@ -123,7 +123,7 @@ func (p *Process) SetNormalPreArguments(indexes ...int) *Process {
 	return p
 }
 
-func (p *Process) SetNormalArguments(indexes ...int) *Process {
+func (p *Command) SetNormalArguments(indexes ...int) *Command {
 	lastIndex := len(p.arguments) - 1
 
 	for _, index := range indexes {
@@ -135,7 +135,7 @@ func (p *Process) SetNormalArguments(indexes ...int) *Process {
 	return p
 }
 
-func (p *Process) newCommand() *exec.Cmd {
+func (p *Command) newExecCmd() *exec.Cmd {
 	args := make([]string, len(p.preArguments)+len(p.arguments))
 	index := 0
 
@@ -152,7 +152,7 @@ func (p *Process) newCommand() *exec.Cmd {
 	return exec.Command(args[0], args[1:]...)
 }
 
-func (p *Process) toString(hideSecret bool) string {
+func (p *Command) toString(hideSecret bool) string {
 	buffer := strings.Builder{}
 	preArgumentLastIndex := len(p.preArguments) - 1
 	argumentLastIndex := len(p.arguments) - 1

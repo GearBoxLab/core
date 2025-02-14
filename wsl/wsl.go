@@ -8,13 +8,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/GearBoxLab/core/process"
+	"github.com/GearBoxLab/core/command"
 )
 
 func DefaultWslDistribution() (distribution string, err error) {
 	var result string
 
-	p := process.New("wsl", "--list", "--verbose")
+	p := command.New("wsl", "--list", "--verbose")
 	regex := regexp.MustCompile(`^\* (\S+)\s+(Running|Stopped)\s+\d`)
 
 	if result, err = p.Output(); nil != err {
@@ -31,7 +31,7 @@ func DefaultWslDistribution() (distribution string, err error) {
 }
 
 func ConvertToLinuxPath(distribution, windowsPath string) (linuxPath string, err error) {
-	p := process.NewWslProcess(distribution, "wslpath", "-a", filepath.ToSlash(windowsPath))
+	p := command.NewWslCommand(distribution, "wslpath", "-a", filepath.ToSlash(windowsPath))
 
 	if linuxPath, err = p.Output(); nil != err {
 		return "", err
@@ -44,7 +44,7 @@ func EnableSystemd(distribution string) (err error) {
 	var content string
 
 	args := []string{"[", "-f", "/etc/wsl.conf", "]", "&&", "cat", "/etc/wsl.conf"}
-	if content, err = process.NewWslSudoProcess(distribution, args...).Output(); err != nil {
+	if content, err = command.NewWslSudoCommand(distribution, args...).Output(); err != nil {
 		return err
 	}
 
@@ -65,7 +65,7 @@ func EnableSystemd(distribution string) (err error) {
 	if modified {
 		var terminateResult string
 
-		if terminateResult, err = process.New("wsl", "--terminate", distribution).Output(); err != nil {
+		if terminateResult, err = command.New("wsl", "--terminate", distribution).Output(); err != nil {
 			if "The operation completed successfully." != strings.TrimSpace(terminateResult) {
 				return err
 			}
@@ -76,13 +76,13 @@ func EnableSystemd(distribution string) (err error) {
 }
 
 func createWslConfFile(distribution string) (err error) {
-	processes := []*process.Process{
-		process.NewWslSudoProcess(distribution, "bash", "-c", "echo [boot] > /etc/wsl.conf"),
-		process.NewWslSudoProcess(distribution, "bash", "-c", "echo systemd=true >> /etc/wsl.conf"),
-		process.NewWslSudoProcess(distribution, "bash", "-c", "echo >> /etc/wsl.conf"),
+	commands := []*command.Command{
+		command.NewWslSudoCommand(distribution, "bash", "-c", "echo [boot] > /etc/wsl.conf"),
+		command.NewWslSudoCommand(distribution, "bash", "-c", "echo systemd=true >> /etc/wsl.conf"),
+		command.NewWslSudoCommand(distribution, "bash", "-c", "echo >> /etc/wsl.conf"),
 	}
-	for _, proc := range processes {
-		if err = proc.Run(); err != nil {
+	for _, cmd := range commands {
+		if err = cmd.Run(); err != nil {
 			return err
 		}
 	}
@@ -128,7 +128,7 @@ func updateWslConfFile(distribution, content string) (modified bool, err error) 
 			}
 
 			cmd := fmt.Sprintf("echo %q %s /etc/wsl.conf", line, strings.Repeat(">", operatorCount))
-			if err = process.NewWslSudoProcess(distribution, "bash", "-c", cmd).Run(); err != nil {
+			if err = command.NewWslSudoCommand(distribution, "bash", "-c", cmd).Run(); err != nil {
 				return modified, err
 			}
 		}

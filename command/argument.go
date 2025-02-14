@@ -1,4 +1,4 @@
-package process
+package command
 
 import (
 	"fmt"
