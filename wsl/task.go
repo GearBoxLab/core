@@ -32,13 +32,13 @@ func CreateTaskForStartSystemd(distribution string) (err error) {
 	}
 	defer rootFolder.Release()
 
-	if false == hasSubFolder(rootFolder, taskFolderName) {
+	if !hasSubFolder(rootFolder, taskFolderName) {
 		if err = createSubFolder(rootFolder, taskFolderName); err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	if true == hasTask(rootFolder, taskPath) {
+	if hasTask(rootFolder, taskPath) {
 		if _, err = oleutil.CallMethod(rootFolder, "DeleteTask", taskPath, 0); err != nil {
 			return err
 		}
@@ -112,7 +112,7 @@ func getTaskService() (service *ole.IDispatch, err error) {
 		return nil, err
 	}
 
-	if nil == scheduler {
+	if scheduler == nil {
 		ole.CoUninitialize()
 		return nil, errors.New("could not create ITaskService instance")
 	}
@@ -170,7 +170,7 @@ func getUsername() (username string, err error) {
 	parts := strings.Split(currentUser.Username, `\`)
 
 	if len(parts) > 0 {
-		if 1 == len(parts) {
+		if len(parts) == 1 {
 			return parts[0], nil
 		} else {
 			return parts[1], nil

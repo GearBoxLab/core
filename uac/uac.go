@@ -28,7 +28,7 @@ func PromptWithExtraArguments(messageFilePath string, maxWaitTime time.Duration,
 		err := job()
 		message := []byte("")
 
-		if nil != err {
+		if err != nil {
 			message = []byte(err.Error())
 		}
 

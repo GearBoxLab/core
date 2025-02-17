@@ -25,11 +25,11 @@ func New(commandFactory command.Factory) *Ansible {
 func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 	var installed bool
 
-	if installed, err = ansible.isInstalled(); nil != err {
+	if installed, err = ansible.isInstalled(); err != nil {
 		return err
 	}
 
-	if false == installed {
+	if !installed {
 		switch osName {
 		case "oracle-linux":
 			commands := []*command.Command{
@@ -53,12 +53,12 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 			}
 
 			printer.Printf("\n<comment>$ %s</comment>\n", commands[2].String())
-			if err = commands[2].Run(); nil != err {
+			if err = commands[2].Run(); err != nil {
 				return err
 			}
 
 			printer.Printf("\n<comment>$ %s</comment>\n", commands[3].String())
-			if err = commands[3].Run(); nil != err {
+			if err = commands[3].Run(); err != nil {
 				return err
 			}
 		default:
@@ -88,7 +88,7 @@ func (ansible *Ansible) RunAnsiblePlaybook(playbookFilePath, variableFilePath, s
 	}
 
 	printer.Printf("\n<comment>$ %s</comment>\n", cmd.String())
-	if err = cmd.Run(); nil != err {
+	if err = cmd.Run(); err != nil {
 		return err
 	}
 
@@ -99,13 +99,13 @@ func (ansible *Ansible) isInstalled() (installed bool, err error) {
 	var path string
 	var realPath string
 
-	if path, err = ansible.commandFactory.NewCommand("which", "ansible").Output(); nil != err && "exit status 1" != err.Error() {
+	if path, err = ansible.commandFactory.NewCommand("which", "ansible").Output(); err != nil && "exit status 1" != err.Error() {
 		return false, err
 	}
 	path = strings.TrimSpace(path)
 
-	if "" != path {
-		if realPath, err = ansible.commandFactory.NewCommand("ls", path).Output(); nil != err {
+	if path != "" {
+		if realPath, err = ansible.commandFactory.NewCommand("ls", path).Output(); err != nil {
 			return false, err
 		}
 

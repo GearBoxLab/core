@@ -21,7 +21,7 @@ func IsHostsChanged(comment, newHostsFilePath, systemHostsFilePath string) (chan
 	if _, oldHostsBuff, err = loadHostsFile(systemHostsFilePath, startMessage, endMessage); err != nil {
 		return changed, err
 	}
-	if newHosts, err = os.ReadFile(newHostsFilePath); nil != err {
+	if newHosts, err = os.ReadFile(newHostsFilePath); err != nil {
 		return changed, err
 	}
 
@@ -42,7 +42,7 @@ func UpdateHostsFile(comment, newHostsFilePath, systemHostsFilePath string) (err
 		return err
 	}
 
-	if newHosts, err = os.ReadFile(newHostsFilePath); nil != err {
+	if newHosts, err = os.ReadFile(newHostsFilePath); err != nil {
 		return err
 	}
 
@@ -66,7 +66,7 @@ func loadHostsFile(filepath, startMessage, endMessage string) (buff bytes.Buffer
 	}
 
 	var file *os.File
-	if file, err = os.Open(filepath); nil != err {
+	if file, err = os.Open(filepath); err != nil {
 		return buff, oldBuff, err
 	}
 
@@ -90,7 +90,7 @@ func loadHostsFile(filepath, startMessage, endMessage string) (buff bytes.Buffer
 			continue
 		}
 
-		if (false == hasStart && false == hasEnd) || (true == hasStart && true == hasEnd) {
+		if (!hasStart && !hasEnd) || (hasStart && hasEnd) {
 			buff.WriteString(line)
 			buff.WriteRune('\n')
 		} else {
@@ -99,7 +99,7 @@ func loadHostsFile(filepath, startMessage, endMessage string) (buff bytes.Buffer
 		}
 	}
 
-	if err = file.Close(); nil != err {
+	if err = file.Close(); err != nil {
 		return buff, oldBuff, err
 	}
 

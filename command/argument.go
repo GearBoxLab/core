@@ -15,7 +15,7 @@ func (arg *argument) ToString(hideSecret bool) string {
 		return "***secret***"
 	}
 
-	if strings.Contains(arg.Value, " ") || strings.Contains(arg.Value, "\"") {
+	if strings.Contains(arg.Value, " ") || strings.Contains(arg.Value, `"`) {
 		return fmt.Sprintf(`"%s"`, strings.ReplaceAll(arg.Value, `"`, `\"`))
 	}
 

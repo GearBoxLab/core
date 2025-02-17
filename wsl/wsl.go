@@ -70,7 +70,7 @@ func EnableSystemd(distribution string) (err error) {
 		var terminateResult string
 
 		if terminateResult, err = command.New("wsl", "--terminate", distribution).Output(); err != nil {
-			if "The operation completed successfully." != strings.TrimSpace(terminateResult) {
+			if strings.TrimSpace(terminateResult) != "The operation completed successfully." {
 				return err
 			}
 		}
@@ -101,18 +101,18 @@ func updateWslConfFile(distribution, content string) (modified bool, err error) 
 		return modified, err
 	}
 
-	if false == cfg.HasSection("boot") {
+	if !cfg.HasSection("boot") {
 		if _, err = cfg.NewSection("boot"); err != nil {
 			return modified, err
 		}
 	}
 
-	if false == cfg.Section("boot").HasKey("systemd") {
+	if !cfg.Section("boot").HasKey("systemd") {
 		if _, err = cfg.Section("boot").NewKey("systemd", "true"); err != nil {
 			return modified, err
 		}
 		modified = true
-	} else if "true" != cfg.Section("boot").Key("systemd").Value() {
+	} else if cfg.Section("boot").Key("systemd").Value() != "true" {
 		cfg.Section("boot").Key("systemd").SetValue("true")
 		modified = true
 	}
