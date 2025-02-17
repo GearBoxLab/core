@@ -42,24 +42,28 @@ func ConvertToLinuxPath(distribution, windowsPath string) (linuxPath string, err
 
 func EnableSystemd(distribution string) (err error) {
 	var content string
+	var modified bool
 
-	args := []string{"[", "-f", "/etc/wsl.conf", "]", "&&", "cat", "/etc/wsl.conf"}
+	args := []string{"[", "!", "-f", "/etc/wsl.conf", "]", "||", "echo", "wsl.conf exists"}
 	if content, err = command.NewWslSudoCommand(distribution, args...).Output(); err != nil {
 		return err
 	}
-
 	content = strings.TrimSpace(content)
-	modified := false
 
-	if "" == content {
+	if content == "wsl.conf exists" {
+		if content, err = command.NewWslSudoCommand(distribution, "cat", "/etc/wsl.conf").Output(); err != nil {
+			return err
+		}
+		content = strings.TrimSpace(content)
+
+		if modified, err = updateWslConfFile(distribution, content); err != nil {
+			return err
+		}
+	} else {
 		if err = createWslConfFile(distribution); err != nil {
 			return err
 		}
 		modified = true
-	} else {
-		if modified, err = updateWslConfFile(distribution, content); err != nil {
-			return err
-		}
 	}
 
 	if modified {
