@@ -31,11 +31,14 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 
 	if !installed {
 		switch osName {
-		case "oracle-linux":
+		case "OracleLinux":
+		case "AlmaLinux":
+		case "RockyLinux":
 			commands := []*command.Command{
 				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "check-update", "-y"),
 				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "upgrade", "-y"),
 				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "install", "-y", "epel-release"),
+				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "update", "-y"),
 				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "install", "-y", "ansible"),
 			}
 
