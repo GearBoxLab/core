@@ -32,20 +32,15 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 	if !installed {
 		switch osName {
 		case "AlmaLinux", "OracleLinux", "RockyLinux":
-			commands := []*command.Command{
-				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "check-update", "-y"),
-				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "upgrade", "-y"),
-				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "install", "-y", "epel-release"),
-				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "update", "-y"),
-				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "install", "-y", "ansible"),
-			}
+			updateCmd := ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "check-update", "-y")
+			upgradeCmd := ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "upgrade", "-y")
 
-			printer.Printf("\n<comment>$ %s</comment>\n", commands[0].String())
-			if err = commands[0].Run(); err != nil {
+			printer.Printf("\n<comment>$ %s</comment>\n", updateCmd.String())
+			if err = updateCmd.Run(); err != nil {
 				var exitError *exec.ExitError
 				if errors.As(err, &exitError) && exitError.ExitCode() == 100 {
-					printer.Printf("\n<comment>$ %s</comment>\n", commands[1].String())
-					if err = commands[1].Run(); err != nil {
+					printer.Printf("\n<comment>$ %s</comment>\n", upgradeCmd.String())
+					if err = upgradeCmd.Run(); err != nil {
 						return err
 					}
 				} else {
@@ -53,14 +48,17 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 				}
 			}
 
-			printer.Printf("\n<comment>$ %s</comment>\n", commands[2].String())
-			if err = commands[2].Run(); err != nil {
-				return err
+			commands := []*command.Command{
+				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "install", "-y", "epel-release"),
+				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "update", "-y"),
+				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "install", "-y", "ansible"),
 			}
 
-			printer.Printf("\n<comment>$ %s</comment>\n", commands[3].String())
-			if err = commands[3].Run(); err != nil {
-				return err
+			for _, cmd := range commands {
+				printer.Printf("\n<comment>$ %s</comment>\n", cmd.String())
+				if err = cmd.Run(); err != nil {
+					return err
+				}
 			}
 		default:
 			return errors.New(fmt.Sprintf("unsupported os: %q", osName))
