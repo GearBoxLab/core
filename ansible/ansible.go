@@ -31,9 +31,7 @@ func (ansible *Ansible) Install(osName, sudoPassword string) (err error) {
 
 	if !installed {
 		switch osName {
-		case "OracleLinux":
-		case "AlmaLinux":
-		case "RockyLinux":
+		case "AlmaLinux", "OracleLinux", "RockyLinux":
 			commands := []*command.Command{
 				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "check-update", "-y"),
 				ansible.commandFactory.NewSudoCommand(sudoPassword, "dnf", "upgrade", "-y"),
